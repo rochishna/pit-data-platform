@@ -3,8 +3,10 @@
 Stores every published version of US economic data, so any question can be answered **as of** a past date
 using only what was known then, and measures how much lookahead bias inflates a forecast that ignores this.
 
-> **Status:** vintage downloader and bitemporal store with as-of queries are done and tested on real data
-> (72,368 published values across 5 series). The lookahead-bias experiment and forecast come next.
+> **Result:** a forecast trained and tested on revised data claims **+23.9%** skill over a historical-average
+> guess. Given only what was published on each forecast day, the same model delivers **+14.3%**; trained honestly,
+> **+2.9%**. Outside the 2020 shock, nothing beats the average, which a leaky backtest would have hidden.
+> Full write-up: [docs/LOOKAHEAD.md](docs/LOOKAHEAD.md).
 
 ## Why
 
@@ -55,3 +57,29 @@ month went from $734.9B on release, to $722.0B nine days later, to $694.8B in th
 **Release dates are not a fixed schedule.** No series published anything in October 2025; every one jumped from
 mid-September to late November, consistent with the October–November 2025 federal shutdown. A backtest that
 assumes data arrives mid-month would have used numbers that did not exist yet. This store uses actual release dates.
+
+## The lookahead experiment
+
+```bash
+python -m pit.experiment         # writes docs/LOOKAHEAD.md
+```
+
+Each month, forecast industrial production growth the day before its first release, and score it against that
+first release, the number known and traded on release day. Three setups share one model and one set of months
+(Jan 2008 – Sep 2026, walk-forward, yearly refit):
+
+| Setup | Trained on | Inputs at forecast time | Scored against |
+|---|---|---|---|
+| Leaky, as reported | today's revised data | today's revised data | revised growth |
+| Leaky, run for real | today's revised data | as published that day | first release |
+| Honest | as published, first-release targets already out | as published that day | first release |
+
+| Ridge regression | All months | Excluding Mar–Jul 2020 |
+|---|---:|---:|
+| Leaky, as reported | +23.9% | +1.9% |
+| Leaky, run for real | +14.3% | −2.4% |
+| Honest | +2.9% | −0.9% |
+
+Skill = 1 − RMSE(model) / RMSE(historical average), on the same answer key. Gradient-boosted trees were run first
+and overfit the small sample (~80–250 rows per refit); their results are reported alongside. Honest rows record
+the newest publication date among their inputs, and the run aborts if any postdates the forecast day.
