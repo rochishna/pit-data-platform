@@ -1,0 +1,9 @@
+# Series downloaded with every published vintage from ALFRED (St. Louis Fed).
+# Target chosen by Rochishna: industrial production, with retail sales as a key input.
+target: INDPRO
+series:
+  INDPRO:  {name: Industrial Production Index,           frequency: monthly, role: target}
+  RSAFS:   {name: Advance Retail Sales (retail + food),  frequency: monthly, role: feature}
+  TCU:     {name: Capacity Utilization (total industry), frequency: monthly, role: feature}
+  UNRATE:  {name: Unemployment Rate,                     frequency: monthly, role: feature}
+  PAYEMS:  {name: Nonfarm Payrolls,                      frequency: monthly, role: feature}
